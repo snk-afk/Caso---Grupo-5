@@ -13,8 +13,42 @@
   <nav class="navbar navbar-dark lt-navbar mb-4" id="barra-navegacion" data-testid="barra-navegacion"></nav>
   <main class="container pb-5" id="contenido" hidden>
     <h1 class="h3 mb-3" id="titulo" data-testid="titulo">Solicitudes pendientes</h1>
+
     <div id="mensaje" data-testid="mensaje" class="d-none" role="alert" aria-live="polite"></div>
-    <p class="text-muted">Contenido disponible en la Fase 4.</p>
+
+    <div class="card border-danger shadow-sm mb-4" id="panel-rechazo" data-testid="panel-rechazo" hidden>
+      <div class="card-body">
+        <h2 class="h5 card-title">Rechazar solicitud</h2>
+        <p class="text-muted mb-2" id="detalle-rechazo" data-testid="detalle-rechazo"></p>
+        <form id="form-rechazo" data-testid="form-rechazo" novalidate>
+          <label for="motivo-rechazo" class="form-label">Justificación (obligatoria)</label>
+          <textarea class="form-control mb-3" id="motivo-rechazo" name="motivo" data-testid="motivo-rechazo"
+                    rows="3" maxlength="300" required></textarea>
+          <button type="submit" class="btn btn-danger me-2" id="btn-confirmar-rechazo" data-testid="btn-confirmar-rechazo">
+            Confirmar rechazo
+          </button>
+          <button type="button" class="btn btn-outline-secondary" id="btn-cancelar-rechazo" data-testid="btn-cancelar-rechazo">
+            Cancelar
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="table-responsive bg-white rounded shadow-sm">
+      <table class="table align-middle mb-0" id="tabla-solicitudes" data-testid="tabla-solicitudes">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Estudiante</th>
+            <th scope="col">Equipo</th>
+            <th scope="col">Fecha</th>
+            <th scope="col">Horario</th>
+            <th scope="col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="cuerpo-solicitudes" data-testid="cuerpo-solicitudes"></tbody>
+      </table>
+      <p class="text-muted p-3 mb-0" id="sin-solicitudes" data-testid="sin-solicitudes" hidden>No hay solicitudes pendientes.</p>
+    </div>
   </main>
   <script type="module" src="js/pages/admin.js"></script>
 </body>

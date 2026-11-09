@@ -13,8 +13,70 @@
   <nav class="navbar navbar-dark lt-navbar mb-4" id="barra-navegacion" data-testid="barra-navegacion"></nav>
   <main class="container pb-5" id="contenido" hidden>
     <h1 class="h3 mb-3" id="titulo" data-testid="titulo">Devoluciones</h1>
+
+    <div class="card border-warning shadow-sm mb-4" id="panel-reloj" data-testid="panel-reloj">
+      <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+          <h2 class="h6 card-title mb-0">Reloj de pruebas (QA)</h2>
+          <span class="fw-semibold" id="hora-actual" data-testid="hora-actual"></span>
+        </div>
+        <p class="small text-muted mb-2">
+          Simula la fecha y hora usada para calcular devoluciones tardías. También disponible en la consola:
+          <code>labtrackReloj.fijar('AAAA-MM-DDTHH:MM')</code>, <code>labtrackReloj.adelantar(minutos)</code>,
+          <code>labtrackReloj.restaurar()</code>.
+        </p>
+        <form class="d-flex flex-wrap gap-2" id="form-reloj" data-testid="form-reloj" novalidate>
+          <label for="reloj-simulado" class="visually-hidden">Fecha y hora simulada</label>
+          <input type="datetime-local" class="form-control w-auto" id="reloj-simulado" name="relojSimulado" data-testid="reloj-simulado">
+          <button type="submit" class="btn btn-warning" id="btn-fijar-reloj" data-testid="btn-fijar-reloj">Fijar hora simulada</button>
+          <button type="button" class="btn btn-outline-secondary" id="btn-restaurar-reloj" data-testid="btn-restaurar-reloj">Usar hora real</button>
+        </form>
+      </div>
+    </div>
+
     <div id="mensaje" data-testid="mensaje" class="d-none" role="alert" aria-live="polite"></div>
-    <p class="text-muted">Contenido disponible en la Fase 4.</p>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+      <h2 class="h5 mb-0">Reservas activas (aprobadas)</h2>
+      <div>
+        <label for="buscar-reserva" class="visually-hidden">Buscar reserva activa</label>
+        <input type="search" class="form-control" id="buscar-reserva" name="buscar" data-testid="buscar-reserva"
+               placeholder="Buscar por estudiante, código o equipo" maxlength="60">
+      </div>
+    </div>
+    <div class="table-responsive bg-white rounded shadow-sm mb-4">
+      <table class="table align-middle mb-0" id="tabla-activas" data-testid="tabla-activas">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Estudiante</th>
+            <th scope="col">Código</th>
+            <th scope="col">Equipo</th>
+            <th scope="col">Fecha</th>
+            <th scope="col">Horario</th>
+            <th scope="col">Situación</th>
+            <th scope="col">Acción</th>
+          </tr>
+        </thead>
+        <tbody id="cuerpo-activas" data-testid="cuerpo-activas"></tbody>
+      </table>
+      <p class="text-muted p-3 mb-0" id="sin-activas" data-testid="sin-activas" hidden>No hay reservas activas.</p>
+    </div>
+
+    <h2 class="h5">Estudiantes penalizados</h2>
+    <div class="table-responsive bg-white rounded shadow-sm">
+      <table class="table align-middle mb-0" id="tabla-penalizados" data-testid="tabla-penalizados">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Nombre</th>
+            <th scope="col">Código</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Acción</th>
+          </tr>
+        </thead>
+        <tbody id="cuerpo-penalizados" data-testid="cuerpo-penalizados"></tbody>
+      </table>
+      <p class="text-muted p-3 mb-0" id="sin-penalizados" data-testid="sin-penalizados" hidden>No hay estudiantes penalizados.</p>
+    </div>
   </main>
   <script type="module" src="js/pages/devoluciones.js"></script>
 </body>

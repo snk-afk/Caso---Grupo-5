@@ -18,6 +18,11 @@ export function bloquesDesdeFirestore(bloques) {
   return (bloques ?? []).map((b) => ({ reservaId: b.reservaId, inicio: aFecha(b.inicio), fin: aFecha(b.fin) }));
 }
 
+/** Bloques con Date -> con Timestamp para guardarlos en Firestore. */
+export function bloquesAFirestore(bloques) {
+  return bloques.map((b) => ({ reservaId: b.reservaId, inicio: aTimestamp(b.inicio), fin: aTimestamp(b.fin) }));
+}
+
 /** Errores de negocio pasan tal cual; permission-denied se traduce a un mensaje claro. */
 export function traducirErrorFirestore(error) {
   if (error instanceof ErrorNegocio) {

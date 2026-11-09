@@ -5,7 +5,10 @@ import { cerrarSesion, obtenerUidSesion } from '../repos/authRepo.js';
 import { obtenerUsuario } from '../repos/usuariosRepo.js';
 import { ESTADOS_USUARIO, ROLES } from '../logic/constantes.js';
 import { tieneAcceso } from '../logic/autenticacion.js';
+import { relojSimulado } from '../logic/reloj.js';
 import { crearElemento } from './ui.js';
+// Aplica la hora simulada guardada (si la hay) y expone labtrackReloj en la consola.
+import './relojPruebas.js';
 
 const PAGINA_LOGIN = 'index.html';
 
@@ -51,8 +54,21 @@ function crearDatosUsuario(perfil) {
     atributos: { id: 'btn-cerrar-sesion', 'data-testid': 'btn-cerrar-sesion', type: 'button' },
   });
   salir.addEventListener('click', salirDelSistema);
-  contenedor.append(nombre, estado, salir);
+  const reloj = crearElemento('span', {
+    texto: 'Hora simulada',
+    clases: ['badge', 'text-bg-warning'],
+    atributos: { id: 'indicador-reloj-simulado', 'data-testid': 'indicador-reloj-simulado' },
+  });
+  contenedor.append(reloj, nombre, estado, salir);
   return contenedor;
+}
+
+/** Muestra u oculta el aviso de hora simulada en la barra de navegación. */
+export function actualizarIndicadorReloj() {
+  const indicador = document.getElementById('indicador-reloj-simulado');
+  if (indicador) {
+    indicador.hidden = !relojSimulado();
+  }
 }
 
 function renderizarNavegacion(perfil) {
@@ -85,6 +101,7 @@ export async function protegerPagina(rolesPermitidos) {
     return null;
   }
   renderizarNavegacion(perfil);
+  actualizarIndicadorReloj();
   document.getElementById('contenido').hidden = false;
   return perfil;
 }

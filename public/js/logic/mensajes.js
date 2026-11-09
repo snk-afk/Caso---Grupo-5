@@ -28,7 +28,37 @@ export const MENSAJES = Object.freeze({
   RESERVA_EQUIPO_INEXISTENTE: 'El equipo seleccionado no existe.',
   RESERVA_EQUIPO_NO_DISPONIBLE: 'El equipo seleccionado no está disponible.',
   RESERVA_CREADA: 'Reserva registrada correctamente. Queda pendiente de aprobación por el encargado.',
+
+  // HU-04
+  SOLICITUD_INEXISTENTE: 'La solicitud no existe.',
+  SOLICITUD_YA_ATENDIDA: 'La solicitud ya fue atendida por otro encargado. Se actualizó la lista.',
+  APROBACION_EQUIPO_PRESTADO: 'No se puede aprobar: el equipo ya está prestado.',
+  RECHAZO_SIN_MOTIVO: 'Debes ingresar una justificación para rechazar la solicitud.',
+  RECHAZO_MOTIVO_LARGO: 'La justificación no puede superar los 300 caracteres.',
+
+  // HU-05
+  DEVOLUCION_NO_ACTIVA: 'La reserva no está activa (debe estar Aprobada para registrar la devolución).',
+  USUARIO_NO_PENALIZADO: 'El estudiante no está penalizado.',
 });
+
+export function mensajeAprobada(reserva) {
+  return `Solicitud aprobada: ${reserva.nombreEquipo} quedó Prestado a ${reserva.nombreEstudiante}.`;
+}
+
+export function mensajeRechazada(reserva) {
+  return `Solicitud de ${reserva.nombreEstudiante} rechazada.`;
+}
+
+export function mensajeDevolucion(reserva, penalizado) {
+  const base = `Devolución registrada: ${reserva.nombreEquipo} vuelve a estar Disponible.`;
+  return penalizado
+    ? `${base} Devolución tardía: ${reserva.nombreEstudiante} pasó a estado Penalizado.`
+    : base;
+}
+
+export function mensajePenalizacionRetirada(usuario) {
+  return `Se retiró la penalización de ${usuario.nombre}. Su estado ahora es Activo.`;
+}
 
 export function mensajeCategoriaInvalida(valor) {
   return `La categoría "${valor}" no existe. Se muestran todos los equipos.`;

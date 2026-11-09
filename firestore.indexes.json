@@ -23,6 +23,14 @@
         { "fieldPath": "uidEstudiante", "order": "ASCENDING" },
         { "fieldPath": "inicio", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "usuarios",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "estado", "order": "ASCENDING" },
+        { "fieldPath": "nombre", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

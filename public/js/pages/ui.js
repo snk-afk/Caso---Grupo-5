@@ -67,6 +67,17 @@ export function crearElemento(etiqueta, { texto = '', clases = [], atributos = {
   return elemento;
 }
 
+/** Crea un botón con id/data-testid estables y su manejador de clic. */
+export function crearBoton({ texto, id, clases = ['btn-primary'], alHacerClic }) {
+  const boton = crearElemento('button', {
+    texto,
+    clases: ['btn', 'btn-sm', ...clases],
+    atributos: { id, 'data-testid': id, type: 'button' },
+  });
+  boton.addEventListener('click', () => alHacerClic(boton));
+  return boton;
+}
+
 /** Deshabilita un botón mientras se procesa una acción y muestra un texto alternativo. */
 export function marcarProcesando(boton, procesando, textoProcesando = 'Procesando...') {
   if (procesando) {
