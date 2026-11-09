@@ -1,0 +1,29 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "equipos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "categoria", "order": "ASCENDING" },
+        { "fieldPath": "nombre", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "reservas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "estado", "order": "ASCENDING" },
+        { "fieldPath": "inicio", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "reservas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "uidEstudiante", "order": "ASCENDING" },
+        { "fieldPath": "inicio", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

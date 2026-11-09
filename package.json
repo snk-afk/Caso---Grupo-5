@@ -1,0 +1,21 @@
+{
+  "name": "labtrack-grupo5",
+  "version": "1.0.0",
+  "description": "LabTrack – Grupo 5: gestión de préstamos de equipos de laboratorio (Calidad y Pruebas de Software, UPN)",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "serve": "firebase emulators:start --project demo-labtrack",
+    "seed": "node scripts/seed.js",
+    "seed:emulador": "node scripts/seed.js --emulador",
+    "reset": "node scripts/seed.js --emulador"
+  },
+  "devDependencies": {
+    "dotenv": "^16.4.7",
+    "firebase-admin": "^13.4.0",
+    "firebase-tools": "^14.11.0"
+  }
+}

@@ -1,0 +1,175 @@
+rules_version = '2';
+
+// Reglas de seguridad de LabTrack – Grupo 5.
+// Los documentos de usuarios y equipos se crean solo con firebase-admin (scripts/seed.js),
+// que ignora estas reglas.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Funciones auxiliares ----------
+    function autenticado() {
+      return request.auth != null;
+    }
+
+    function rutaUsuario(uid) {
+      return /databases/$(database)/documents/usuarios/$(uid);
+    }
+
+    function perfil() {
+      return get(rutaUsuario(request.auth.uid)).data;
+    }
+
+    function tieneRol(rol) {
+      return autenticado() && exists(rutaUsuario(request.auth.uid)) && perfil().rol == rol;
+    }
+
+    function esEncargado() {
+      return tieneRol('encargado');
+    }
+
+    function esEstudianteActivo() {
+      return tieneRol('estudiante') && perfil().estado == 'Activo';
+    }
+
+    function soloCampos(campos) {
+      return request.resource.data.keys().hasOnly(campos);
+    }
+
+    function cambiaSolo(campos) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(campos);
+    }
+
+    function nuevo() {
+      return request.resource.data;
+    }
+
+    // ---------- usuarios/{uid} ----------
+    // reservaActivaId: id de la reserva Pendiente/Aprobada del estudiante, o null.
+    // Garantiza "máximo 1 equipo reservado de forma simultánea" dentro de transacciones.
+    function rutaReserva(reservaId) {
+      return /databases/$(database)/documents/reservas/$(reservaId);
+    }
+
+    function liberaOConservaReserva() {
+      return !('reservaActivaId' in request.resource.data.diff(resource.data).affectedKeys())
+        || nuevo().reservaActivaId == null;
+    }
+
+    // El encargado penaliza / quita la penalización y libera la reserva activa.
+    function actualizacionDelEncargado() {
+      return esEncargado()
+        && cambiaSolo(['estado', 'reservaActivaId'])
+        && nuevo().estado in ['Activo', 'Penalizado']
+        && liberaOConservaReserva();
+    }
+
+    // El estudiante solo ocupa su cupo, en la misma escritura que crea su reserva.
+    function ocupaCupoConReservaNueva(uid) {
+      return request.auth.uid == uid
+        && resource.data.rol == 'estudiante'
+        && resource.data.estado == 'Activo'
+        && cambiaSolo(['reservaActivaId'])
+        && resource.data.reservaActivaId == null
+        && nuevo().reservaActivaId is string
+        && !exists(rutaReserva(nuevo().reservaActivaId))
+        && existsAfter(rutaReserva(nuevo().reservaActivaId))
+        && getAfter(rutaReserva(nuevo().reservaActivaId)).data.uidEstudiante == uid;
+    }
+
+    match /usuarios/{uid} {
+      allow read: if autenticado() && (request.auth.uid == uid || esEncargado());
+      allow update: if actualizacionDelEncargado() || ocupaCupoConReservaNueva(uid);
+      allow create, delete: if false;
+    }
+
+    // ---------- seguridadLogin/{codigo} ----------
+    // Se consulta y escribe ANTES de iniciar sesión, por eso admite peticiones sin autenticar.
+    // Ver README > "Limitaciones de seguridad del bloqueo de login".
+    function camposSeguridadValidos() {
+      return soloCampos(['intentosFallidos', 'bloqueadoHasta'])
+        && nuevo().intentosFallidos is int
+        && nuevo().intentosFallidos >= 0
+        && nuevo().intentosFallidos <= 3
+        && (nuevo().bloqueadoHasta == null
+            || (nuevo().bloqueadoHasta is timestamp
+                && nuevo().bloqueadoHasta <= request.time + duration.value(60, 'm')));
+    }
+
+    function bloqueoVigente() {
+      return resource.data.bloqueadoHasta != null && resource.data.bloqueadoHasta > request.time;
+    }
+
+    function esDuenoDelCodigo(codigo) {
+      return autenticado() && request.auth.token.email == codigo + '@labtrack.edu.pe';
+    }
+
+    match /seguridadLogin/{codigo} {
+      allow read: if true;
+      // Primer intento fallido.
+      allow create: if camposSeguridadValidos() && nuevo().intentosFallidos == 1;
+      allow update: if camposSeguridadValidos() && (
+        // Intento fallido: el contador solo sube de 1 en 1 y no se toca un bloqueo vigente.
+        (!bloqueoVigente() && nuevo().intentosFallidos == resource.data.intentosFallidos + 1)
+        // Bloqueo vencido: el contador vuelve a empezar en 1.
+        || (resource.data.bloqueadoHasta != null && !bloqueoVigente()
+            && nuevo().intentosFallidos == 1 && nuevo().bloqueadoHasta == null)
+        // Login exitoso: solo el dueño del código reinicia el contador.
+        || (esDuenoDelCodigo(codigo) && nuevo().intentosFallidos == 0 && nuevo().bloqueadoHasta == null)
+      );
+      allow delete: if false;
+    }
+
+    // ---------- equipos/{id} ----------
+    match /equipos/{id} {
+      allow read: if autenticado();
+      // Solo el encargado cambia el estado y la agenda de bloques aprobados.
+      allow update: if esEncargado()
+        && cambiaSolo(['estado', 'bloquesAprobados'])
+        && nuevo().estado in ['Disponible', 'Prestado']
+        && nuevo().bloquesAprobados is list;
+      allow create, delete: if false;
+    }
+
+    // ---------- reservas/{id} ----------
+    function camposReserva() {
+      return ['uidEstudiante', 'nombreEstudiante', 'equipoId', 'nombreEquipo', 'fecha',
+              'horaInicio', 'horaFin', 'inicio', 'fin', 'estado', 'motivoRechazo',
+              'fechaDevolucion'];
+    }
+
+    function equipoDisponible(equipoId) {
+      return get(/databases/$(database)/documents/equipos/$(equipoId)).data.estado == 'Disponible';
+    }
+
+    function transicionValida() {
+      return (resource.data.estado == 'Pendiente' && nuevo().estado == 'Aprobada'
+                && cambiaSolo(['estado']))
+          || (resource.data.estado == 'Pendiente' && nuevo().estado == 'Rechazada'
+                && cambiaSolo(['estado', 'motivoRechazo'])
+                && nuevo().motivoRechazo is string
+                && nuevo().motivoRechazo.trim().size() > 0)
+          || (resource.data.estado == 'Aprobada' && nuevo().estado == 'Devuelta'
+                && cambiaSolo(['estado', 'fechaDevolucion'])
+                && nuevo().fechaDevolucion is timestamp);
+    }
+
+    match /reservas/{id} {
+      allow read: if esEncargado()
+        || (autenticado() && resource.data.uidEstudiante == request.auth.uid);
+      allow create: if esEstudianteActivo()
+        && soloCampos(camposReserva())
+        && nuevo().uidEstudiante == request.auth.uid
+        && nuevo().estado == 'Pendiente'
+        && nuevo().inicio is timestamp
+        && nuevo().fin is timestamp
+        && nuevo().inicio < nuevo().fin
+        && nuevo().fin > request.time
+        && equipoDisponible(nuevo().equipoId)
+        // Máximo 1 reserva simultánea: el cupo estaba libre y queda apuntando a esta reserva.
+        && perfil().reservaActivaId == null
+        && getAfter(rutaUsuario(request.auth.uid)).data.reservaActivaId == id;
+      allow update: if esEncargado() && transicionValida();
+      allow delete: if false;
+    }
+  }
+}

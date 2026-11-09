@@ -1,0 +1,15 @@
+/* Estilos propios de LabTrack (complementan Bootstrap 5) */
+:root {
+  --lt-primario: #0d3b66;
+  --lt-fondo: #f4f6fa;
+}
+
+body {
+  background-color: var(--lt-fondo);
+  min-height: 100vh;
+}
+
+.lt-marca {
+  color: var(--lt-primario);
+  font-weight: 700;
+}

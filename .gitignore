@@ -1,0 +1,38 @@
+# Dependencias
+node_modules/
+
+# Configuración y credenciales (NUNCA subir)
+.env
+.env.*
+!.env.example
+public/js/firebase-config.js
+.firebaserc
+credenciales/
+*serviceAccount*.json
+*service-account*.json
+*-firebase-adminsdk-*.json
+
+# Firebase CLI / emuladores
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+database-debug.log*
+pubsub-debug.log*
+emulator-data/
+
+# Cobertura y reportes generados
+coverage/
+reports/
+mochawesome-report/
+.scannerwork/
+jmeter/resultados/
+jmeter/reporte/
+*.jtl
+jmeter.log
+
+# Sistema operativo / editores
+.DS_Store
+Thumbs.db
+.idea/
+*.log
