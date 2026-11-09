@@ -12,9 +12,34 @@
 <body>
   <nav class="navbar navbar-dark lt-navbar mb-4" id="barra-navegacion" data-testid="barra-navegacion"></nav>
   <main class="container pb-5" id="contenido" hidden>
-    <h1 class="h3 mb-3" id="titulo" data-testid="titulo">Catálogo de equipos</h1>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <h1 class="h3 mb-0" id="titulo" data-testid="titulo">Catálogo de equipos</h1>
+      <span class="text-muted" id="contador-equipos" data-testid="contador-equipos"></span>
+    </div>
+
+    <div class="btn-group flex-wrap mb-3" role="group" aria-label="Filtrar por categoría" id="filtros" data-testid="filtros">
+      <button type="button" class="btn btn-outline-primary" id="filtro-todas" data-testid="filtro-todas" data-categoria="">Todas</button>
+      <button type="button" class="btn btn-outline-primary" id="filtro-computo" data-testid="filtro-computo" data-categoria="Cómputo">Cómputo</button>
+      <button type="button" class="btn btn-outline-primary" id="filtro-electronica" data-testid="filtro-electronica" data-categoria="Electrónica">Electrónica</button>
+      <button type="button" class="btn btn-outline-primary" id="filtro-redes" data-testid="filtro-redes" data-categoria="Redes">Redes</button>
+    </div>
+
     <div id="mensaje" data-testid="mensaje" class="d-none" role="alert" aria-live="polite"></div>
-    <p class="text-muted">Contenido disponible en la Fase 3.</p>
+
+    <div class="table-responsive bg-white rounded shadow-sm">
+      <table class="table table-hover align-middle mb-0" id="tabla-equipos" data-testid="tabla-equipos">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Nombre</th>
+            <th scope="col">Código de inventario</th>
+            <th scope="col">Categoría</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Acción</th>
+          </tr>
+        </thead>
+        <tbody id="cuerpo-equipos" data-testid="cuerpo-equipos"></tbody>
+      </table>
+    </div>
   </main>
   <script type="module" src="js/pages/catalogo.js"></script>
 </body>

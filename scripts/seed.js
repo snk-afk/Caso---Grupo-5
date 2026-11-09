@@ -13,7 +13,7 @@ import { parseArgs } from 'node:util';
 import { codigoACorreo } from '../public/js/logic/autenticacion.js';
 import { conectarAdmin } from './lib/admin.js';
 import { sembrar } from './lib/sembrador.js';
-import { generarCsvJmeter, resolverCategoria } from './seed-data.js';
+import { categoriaObligatoria, generarCsvJmeter } from './seed-data.js';
 
 const RUTA_CSV_JMETER = new URL('../jmeter/usuarios.csv', import.meta.url);
 
@@ -29,7 +29,7 @@ function leerOpciones() {
   return {
     emulador: values.emulador,
     incluirJmeter: !values['sin-jmeter'],
-    categoriaVacia: categoria ? resolverCategoria(categoria) : null,
+    categoriaVacia: categoria ? categoriaObligatoria(categoria) : null,
   };
 }
 

@@ -8,6 +8,7 @@ import {
   ESTADOS_USUARIO,
   ROLES,
 } from '../public/js/logic/constantes.js';
+import { resolverCategoria } from '../public/js/logic/catalogo.js';
 
 export const CLAVES_DEMO = Object.freeze({
   encargado: 'Admin123*',
@@ -77,13 +78,9 @@ export function construirEquipos({ categoriaVacia = null } = {}) {
     }));
 }
 
-function sinTildes(texto) {
-  return texto.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-}
-
 /** Acepta "Redes", "redes", "Computo" o "Cómputo" y devuelve la categoría oficial. */
-export function resolverCategoria(valor) {
-  const encontrada = CATEGORIAS.find((c) => sinTildes(c) === sinTildes(String(valor)));
+export function categoriaObligatoria(valor) {
+  const encontrada = resolverCategoria(valor);
   if (!encontrada) {
     throw new Error(`Categoría inválida: "${valor}". Usa una de: ${CATEGORIAS.join(', ')}`);
   }

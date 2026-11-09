@@ -11,7 +11,8 @@ y pendientes de validación por el equipo.
 |----|----------------|---------------|----------------|--------|-----------------------|
 | RD-01 | Un estudiante en estado "Penalizado" no puede crear reservas (validado en `logic/` y en `firestore.rules`). | Sin esta restricción la penalización de HU-05 no tendría efecto. | HU-03 / HU-05 | IA | Aprobada por el equipo (revisión de Fase 1) |
 | RD-02 | El encargado puede quitar la penalización de un estudiante (estado vuelve a "Activo"). | Permite revertir la sanción una vez cumplida o justificada. | HU-05 | IA | Aprobada por el equipo (revisión de Fase 1) |
-| RD-03 | El reinicio de datos para Selenium deja a todos los usuarios en "Activo" y sin reserva activa. | Garantiza independencia entre pruebas automatizadas. | Todas | IA | Aprobada por el equipo (revisión de Fase 1) |
+| RD-03 | El reinicio de datos (`npm run reset`) deja a todos los usuarios en "Activo" y sin reserva activa. | Garantiza que cada prueba empiece desde el mismo estado. | Todas | IA | Aprobada por el equipo (revisión de Fase 1) |
+| RD-04 | El selector de equipos del formulario de reserva muestra todos los equipos con su estado; la validación revisa primero el cruce con reservas aprobadas y luego que el equipo esté "Disponible". | Al aprobar, el equipo pasa a "Prestado"; sin esto el error de cruce de HU-03 no sería observable desde la interfaz. | HU-03 / HU-04 | IA | Pendiente |
 
 ## Casos de prueba de reglas derivadas
 
