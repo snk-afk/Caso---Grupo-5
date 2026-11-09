@@ -13,3 +13,16 @@ body {
   color: var(--lt-primario);
   font-weight: 700;
 }
+
+.lt-navbar {
+  background-color: var(--lt-primario);
+}
+
+.lt-navbar .nav-link {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.lt-navbar .nav-link.active,
+.lt-navbar .nav-link:hover {
+  color: #fff;
+}

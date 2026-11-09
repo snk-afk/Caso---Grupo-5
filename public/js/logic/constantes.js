@@ -37,7 +37,11 @@ export const COLECCIONES = Object.freeze({
 /** Dominio con el que se arma el correo de Firebase Auth: {codigo}@labtrack.edu.pe */
 export const DOMINIO_CORREO = 'labtrack.edu.pe';
 
-/** Parámetros configurables de seguridad del login (HU-01). */
+/**
+ * Parámetros configurables de seguridad del login (HU-01).
+ * Si se cambian, actualizar también los límites de seguridadLogin en firestore.rules
+ * (intentosFallidos <= MAX_INTENTOS y bloqueo máximo de 60 minutos).
+ */
 export const SEGURIDAD = Object.freeze({
   MAX_INTENTOS: 3,
   MINUTOS_BLOQUEO: 5,
