@@ -64,11 +64,17 @@ export function mensajeCategoriaInvalida(valor) {
   return `La categoría "${valor}" no existe. Se muestran todos los equipos.`;
 }
 
-export function mensajeCuentaBloqueada(minutos) {
-  return `Cuenta bloqueada temporalmente por intentos fallidos. Intenta nuevamente en ${minutos} minuto(s).`;
+/**
+ * Mensaje de bloqueo que se muestra en #mensaje (HU-01): el MISMO texto al tercer intento fallido
+ * y en cada intento posterior mientras dure el bloqueo.
+ */
+export function mensajeCuentaBloqueada(config = SEGURIDAD) {
+  return `Cuenta bloqueada temporalmente por ${config.MAX_INTENTOS} intentos fallidos consecutivos. `
+    + `Intenta nuevamente en ${config.MINUTOS_BLOQUEO} minutos.`;
 }
 
-export function alertaSeguridadBloqueo(config = SEGURIDAD) {
-  return `Alerta de seguridad: se registraron ${config.MAX_INTENTOS} intentos fallidos consecutivos. `
-    + `La cuenta quedó bloqueada durante ${config.MINUTOS_BLOQUEO} minutos.`;
+/** Alerta de seguridad complementaria (#alerta-seguridad) con el tiempo restante. */
+export function alertaSeguridadBloqueo(minutosRestantes) {
+  return 'Alerta de seguridad: se detectaron varios intentos fallidos para esta cuenta. '
+    + `Se desbloqueará en ${minutosRestantes} minuto(s).`;
 }

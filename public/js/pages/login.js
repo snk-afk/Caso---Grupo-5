@@ -1,9 +1,12 @@
 /**
  * Controlador de la página de login (HU-01).
+ *
+ * Cada envío del formulario se encola y se procesa en orden: así ningún intento se pierde
+ * aunque se envíe varias veces seguidas (por ejemplo, desde Selenium IDE sin esperas).
  */
 import { cerrarSesion, iniciarSesion, obtenerUidSesion } from '../repos/authRepo.js';
 import { obtenerUsuario } from '../repos/usuariosRepo.js';
-import { guardarSeguridad, obtenerSeguridad, reiniciarSeguridad } from '../repos/seguridadLoginRepo.js';
+import { obtenerSeguridad, registrarFallo, reiniciarSeguridad } from '../repos/seguridadLoginRepo.js';
 import {
   codigoACorreo,
   estaBloqueado,
@@ -14,20 +17,15 @@ import {
   requiereReinicioSeguridad,
   validarDatosLogin,
 } from '../logic/autenticacion.js';
-import { ErrorCredenciales, ErrorNegocio } from '../logic/errores.js';
-import { alertaSeguridadBloqueo, mensajeCuentaBloqueada } from '../logic/mensajes.js';
-import {
-  limpiarAlertaSeguridad,
-  limpiarMensaje,
-  marcarProcesando,
-  mostrarAlertaSeguridad,
-  mostrarError,
-} from './ui.js';
+import { ErrorCredenciales, ErrorCuentaBloqueada } from '../logic/errores.js';
+import { alertaSeguridadBloqueo } from '../logic/mensajes.js';
+import { limpiarAlertaSeguridad, limpiarMensaje, mostrarAlertaSeguridad, mostrarError } from './ui.js';
 
 const formulario = document.getElementById('form-login');
 const campoCodigo = document.getElementById('codigo');
 const campoClave = document.getElementById('clave');
-const botonIngresar = document.getElementById('btn-ingresar');
+
+let colaDeIntentos = Promise.resolve();
 
 /**
  * El bloqueo usa la hora REAL del dispositivo (no el reloj inyectable de HU-05),
@@ -35,6 +33,37 @@ const botonIngresar = document.getElementById('btn-ingresar');
  */
 function horaActual() {
   return new Date();
+}
+
+/** Muestra la alerta de seguridad y lanza el error con el mensaje de bloqueo para #mensaje. */
+function rechazarPorBloqueo(seguridad) {
+  mostrarAlertaSeguridad(alertaSeguridadBloqueo(minutosRestantesBloqueo(seguridad, horaActual())));
+  throw new ErrorCuentaBloqueada();
+}
+
+function verificarBloqueo(seguridad) {
+  if (estaBloqueado(seguridad, horaActual())) {
+    rechazarPorBloqueo(seguridad);
+  }
+}
+
+/** Suma el intento fallido (de forma atómica) y, si alcanza el máximo, bloquea la cuenta. */
+async function registrarIntentoFallidoDe(codigo) {
+  const nuevaSeguridad = await registrarFallo(codigo, (actual) => (
+    estaBloqueado(actual, horaActual()) ? null : registrarIntentoFallido(actual, horaActual())
+  ));
+  verificarBloqueo(nuevaSeguridad);
+}
+
+async function autenticar(codigo, clave) {
+  try {
+    return await iniciarSesion(codigoACorreo(codigo), clave);
+  } catch (error) {
+    if (error instanceof ErrorCredenciales) {
+      await registrarIntentoFallidoDe(codigo);
+    }
+    throw error;
+  }
 }
 
 async function redirigirSegunRol(uid) {
@@ -47,58 +76,36 @@ async function redirigirSegunRol(uid) {
   window.location.replace(pagina);
 }
 
-function verificarBloqueo(seguridad) {
-  if (estaBloqueado(seguridad, horaActual())) {
-    mostrarAlertaSeguridad(alertaSeguridadBloqueo());
-    throw new ErrorNegocio(mensajeCuentaBloqueada(minutosRestantesBloqueo(seguridad, horaActual())));
-  }
-}
-
-async function registrarFallo(codigo, seguridad) {
-  const ahora = horaActual();
-  const nuevaSeguridad = registrarIntentoFallido(seguridad, ahora);
-  await guardarSeguridad(codigo, nuevaSeguridad);
-  if (estaBloqueado(nuevaSeguridad, ahora)) {
-    mostrarAlertaSeguridad(alertaSeguridadBloqueo());
-  }
-}
-
-async function autenticar(codigo, clave, seguridad) {
-  try {
-    return await iniciarSesion(codigoACorreo(codigo), clave);
-  } catch (error) {
-    if (error instanceof ErrorCredenciales) {
-      await registrarFallo(codigo, seguridad);
-    }
-    throw error;
-  }
-}
-
 async function intentarIngreso(codigoIngresado, clave) {
   validarDatosLogin(codigoIngresado, clave);
   const codigo = normalizarCodigo(codigoIngresado);
   const seguridad = await obtenerSeguridad(codigo);
   verificarBloqueo(seguridad);
-  const uid = await autenticar(codigo, clave, seguridad);
+  const uid = await autenticar(codigo, clave);
   if (requiereReinicioSeguridad(seguridad)) {
     await reiniciarSeguridad(codigo);
   }
   await redirigirSegunRol(uid);
 }
 
-async function manejarEnvio(evento) {
-  evento.preventDefault();
+async function procesarIntento({ codigo, clave }) {
   limpiarMensaje();
   limpiarAlertaSeguridad();
-  marcarProcesando(botonIngresar, true, 'Ingresando...');
+  formulario.setAttribute('aria-busy', 'true');
   try {
-    await intentarIngreso(campoCodigo.value, campoClave.value);
+    await intentarIngreso(codigo, clave);
   } catch (error) {
-    campoClave.value = '';
     mostrarError(error);
   } finally {
-    marcarProcesando(botonIngresar, false);
+    formulario.removeAttribute('aria-busy');
   }
+}
+
+function manejarEnvio(evento) {
+  evento.preventDefault();
+  // Se capturan los valores en el momento del envío y se procesan en orden de llegada.
+  const datos = { codigo: campoCodigo.value, clave: campoClave.value };
+  colaDeIntentos = colaDeIntentos.then(() => procesarIntento(datos));
 }
 
 async function redirigirSiHaySesion() {
